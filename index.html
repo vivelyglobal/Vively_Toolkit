@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vively Toolkit — 제안서 · 리포트 생성 도구</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fffcf1;
+    --surface: #ffffff;
+    --text: #1b1b1b;
+    --muted: #4f4e4e;
+    --line: rgba(35, 44, 39, 0.12);
+    --line-strong: rgba(35, 44, 39, 0.25);
+    --accent: #ff5757;
+    --soft: rgba(255, 87, 87, 0.07);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Noto Sans KR", "Pretendard", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 28px 100px; }
+
+  /* top nav */
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); border: 1px solid var(--line-strong); border-radius: 999px; padding: 6px 13px; background: #fff; margin-bottom: 14px;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: inline-block; }
+  h1 { font-size: 32px; font-weight: 800; letter-spacing: -0.03em; margin: 0 0 18px; }
+
+  .tab-bar { display: flex; gap: 8px; border-bottom: 1px solid var(--line); margin-bottom: 30px; }
+  .tab-btn {
+    font-size: 14.5px; font-weight: 800; padding: 12px 20px; border: none; background: none; cursor: pointer;
+    color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: inherit;
+  }
+  .tab-btn.active { color: var(--text); border-bottom-color: var(--accent); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .lede { font-size: 14.5px; color: var(--muted); max-width: 720px; margin: 0 0 24px; }
+
+  .howto {
+    border: 1px solid var(--line); border-radius: var(--radius); background: #fff; padding: 18px 20px; margin-bottom: 30px;
+  }
+  .howto .h-title { font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+  .howto ol { margin: 0; padding-left: 20px; color: var(--muted); font-size: 13.5px; }
+  .howto li { margin-bottom: 5px; }
+  .howto li strong { color: var(--text); }
+
+  .section { margin-bottom: 30px; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+  .section-head h2 { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; margin: 0; }
+  .section-head .step { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+  .section-head .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .section-hint { font-size: 12.5px; color: var(--muted); margin: -6px 0 14px; }
+
+  .card { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; padding: 20px; }
+
+  .field-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  label { display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 6px; }
+  input[type="text"], input[type="date"], input[type="number"], input[type="color"], input[type="url"], select, textarea {
+    width: 100%; border: 1px solid var(--line-strong); border-radius: var(--radius-sm); padding: 10px 12px;
+    font-family: inherit; font-size: 14px; color: var(--text); background: #fff;
+  }
+  textarea { resize: vertical; min-height: 70px; }
+  .field { margin-bottom: 4px; }
+  .field.full { grid-column: 1 / -1; }
+  input[type="color"] { padding: 3px; height: 40px; cursor: pointer; }
+  .color-row { display: flex; align-items: center; gap: 10px; }
+  .color-row input[type="color"] { width: 52px; flex-shrink: 0; }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 16px; }
+  .chip {
+    font-size: 12px; font-weight: 700; padding: 6px 13px; border-radius: 999px; border: 1px solid var(--line-strong);
+    background: #fff; color: var(--muted); cursor: pointer; transition: all .15s ease;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+
+  .row-3 { display: grid; grid-template-columns: 1fr 1fr 1.6fr auto; gap: 10px; margin-bottom: 10px; align-items: center; }
+  .row-4 { display: grid; grid-template-columns: 1.4fr 0.8fr 0.8fr 1fr auto; gap: 10px; margin-bottom: 10px; align-items: center; }
+  .row-3 input, .row-4 input, .row-4 select { width: 100%; }
+  .row-remove {
+    width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line-strong); background: #fff;
+    color: var(--muted); cursor: pointer; font-size: 15px; line-height: 1; flex-shrink: 0;
+  }
+  .row-remove:hover { border-color: var(--accent); color: var(--accent); }
+  .add-row-btn {
+    margin-top: 4px; font-size: 13px; font-weight: 700; color: var(--accent); background: none; border: none; cursor: pointer; padding: 6px 0;
+  }
+
+  .dropzone {
+    border: 1.5px dashed var(--line-strong); border-radius: var(--radius); background: #fff;
+    padding: 34px 20px; text-align: center; color: var(--muted); font-size: 13.5px; cursor: pointer; transition: all .15s ease;
+  }
+  .dropzone.drag { border-color: var(--accent); background: var(--soft); color: var(--accent); }
+  .dropzone strong { color: var(--text); }
+
+  .upload-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 16px; }
+  .upload-card { border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fff; overflow: hidden; }
+  .upload-thumb {
+    aspect-ratio: 4/3; background: rgba(35,44,39,0.04); display: flex; align-items: center; justify-content: center; overflow: hidden;
+  }
+  .upload-thumb img, .upload-thumb video { width: 100%; height: 100%; object-fit: cover; }
+  .upload-thumb .file-ico { font-size: 26px; color: var(--muted); }
+  .upload-meta { padding: 10px 12px 12px; }
+  .upload-meta .fname { font-size: 11px; color: var(--muted); word-break: break-all; margin-bottom: 8px; }
+  .upload-meta input, .upload-meta select { font-size: 12.5px; padding: 7px 9px; margin-bottom: 6px; }
+  .upload-meta .warn { font-size: 10.5px; color: #b45309; margin-bottom: 6px; }
+  .upload-remove { font-size: 11px; color: var(--accent); background: none; border: none; cursor: pointer; padding: 0; font-weight: 700; }
+
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; padding-top: 24px; border-top: 1px solid var(--line); }
+  .btn {
+    font-size: 13.5px; font-weight: 700; border-radius: 999px; padding: 12px 22px; cursor: pointer; border: 1px solid var(--line-strong);
+    background: #fff; color: var(--text); font-family: inherit; transition: all .15s ease; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn:hover { border-color: var(--text); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { opacity: 0.9; }
+  .btn.sm { padding: 8px 14px; font-size: 12.5px; }
+  input[type="file"] { display: none; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); opacity: 0;
+    background: var(--text); color: #fff; padding: 11px 20px; border-radius: 999px; font-size: 13px; font-weight: 600;
+    transition: all .25s ease; pointer-events: none; z-index: 50;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ===== report tab specific ===== */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .kpi-mini { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; padding: 16px 14px; }
+  .kpi-mini span { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 8px; }
+  .kpi-mini strong { display: block; font-size: 24px; font-weight: 800; color: var(--accent); letter-spacing: -0.02em; }
+
+  .rp-table-wrap { overflow-x: auto; }
+  table.rp-table { width: 100%; border-collapse: collapse; min-width: 980px; }
+  table.rp-table th, table.rp-table td { border-bottom: 1px solid var(--line); padding: 7px 6px; text-align: left; vertical-align: top; }
+  table.rp-table th { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+  table.rp-table td input, table.rp-table td select { min-width: 88px; padding: 7px 8px; font-size: 12.5px; }
+  table.rp-table td input.url { min-width: 170px; }
+
+  .two-col { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
+  .mini-list { margin: 0; padding-left: 18px; font-size: 13px; color: var(--muted); }
+  .mini-list li { margin-bottom: 6px; }
+
+  /* printable client report */
+  #clientReport { border: 1px solid var(--line); border-radius: var(--radius); background: #fff; padding: 30px; margin-top: 4px; }
+  .rp-report-cover { border-bottom: 1px solid var(--line); margin-bottom: 18px; padding-bottom: 16px; }
+  .rp-report-cover h2 { margin: 4px 0 6px; font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+  .rp-report-cover p { margin: 0; color: var(--muted); font-size: 13px; }
+  .rp-report-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 18px 0; }
+  .rp-report-grid article { background: var(--soft); border-radius: var(--radius-sm); padding: 14px; }
+  .rp-report-grid span { display: block; font-size: 10.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .rp-report-grid strong { display: block; font-size: 22px; font-weight: 800; }
+  #clientReport h3 { font-size: 15px; margin: 22px 0 10px; }
+  #clientReport p#reportSummary { font-size: 13.5px; color: #3b3b3b; line-height: 1.7; }
+  .proof-print-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
+  .proof-print-card { border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; background: #fff; }
+  .proof-print-card img, .proof-print-card video { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
+  .proof-print-card .cap { font-size: 10.5px; color: var(--muted); padding: 6px 8px; }
+
+  @media print {
+    body * { visibility: hidden; }
+    #clientReport, #clientReport * { visibility: visible; }
+    #clientReport { position: absolute; left: 0; top: 0; width: 100%; border: none; padding: 0; }
+    .no-print { display: none !important; }
+  }
+
+  @media (max-width: 760px) {
+    .field-grid, .two-col, .kpi-row, .rp-report-grid { grid-template-columns: 1fr; }
+    .row-3, .row-4 { grid-template-columns: 1fr; }
+    .upload-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow no-print"><span class="dot"></span> Vively · Toolkit</div>
+  <h1 class="no-print">제안서 · 리포트 생성 도구</h1>
+
+  <div class="tab-bar no-print">
+    <button class="tab-btn active" data-tab="proposal">제안서 생성기</button>
+    <button class="tab-btn" data-tab="report">성과 리포트</button>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- TAB 1 — 제안서 생성기 (PROPOSAL GENERATOR / BRIEF COLLECTOR)   -->
+  <!-- ============================================================ -->
+  <div class="tab-panel active no-print" id="panel-proposal">
+    <div class="lede">신규 브랜드 제안서(마켓 검증 · 시딩 캠페인 제안 등)에 필요한 정보를 정리해두면, 같은 형식으로 제안서를 만들 수 있습니다. TONYMOLY · LABIOTTE 제안서와 같은 틀을 사용합니다.</div>
+
+    <div class="howto">
+      <div class="h-title">사용 방법</div>
+      <ol>
+        <li><strong>브랜드 정보</strong>와 <strong>시장 검증 요약</strong>을 입력하세요.</li>
+        <li><strong>제안 조건</strong>(시딩 인원, 예산, 최소 팔로워 등)과 <strong>타임라인</strong>을 정리하세요.</li>
+        <li>참고할 <strong>PDF, 스크린샷, 브랜드 이미지</strong>를 업로드하세요.</li>
+        <li><strong>Export Brief</strong>로 파일을 내려받아 채팅에 업로드하면, 같은 템플릿으로 제안서를 만들어 드립니다.</li>
+      </ol>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><h2>브랜드 정보</h2><span class="step">STEP 1</span></div>
+      <div class="card field-grid">
+        <div class="field"><label>브랜드 / 클라이언트명</label><input type="text" id="pClient" placeholder="예: TONYMOLY" /></div>
+        <div class="field"><label>제안서 제목</label><input type="text" id="pTitle" placeholder="예: 마켓 검증 - 시딩 캠페인 제안" /></div>
+        <div class="field"><label>업종 / 카테고리</label><input type="text" id="pCategory" placeholder="예: 뷰티 / 스킨케어" /></div>
+        <div class="field"><label>테마</label>
+          <select id="pTheme">
+            <option value="cream">기본 (크림 배경 · Vively 마스터 템플릿)</option>
+            <option value="dark">다크 테마</option>
+            <option value="white-rose">화이트 / 로즈 테마</option>
+            <option value="mono-highlight">모노크롬 + 하이라이트 컬러</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>하이라이트 컬러</label>
+          <div class="color-row">
+            <input type="color" id="pColor" value="#ff5757" />
+            <input type="text" id="pColorHex" value="#ff5757" style="max-width:120px;" />
+          </div>
+        </div>
+        <div class="field"><label>목표 국가 / 타깃</label><input type="text" id="pTarget" placeholder="예: 베트남, 싱가포르 외국인 타깃" /></div>
+        <div class="field full"><label>시장 검증 요약</label>
+          <textarea id="pMarketSummary" placeholder="원문 PDF 문구를 그대로 붙여넣거나, 검증된 시장 데이터를 요약해주세요."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><h2>제안 조건 (시딩 · 예산)</h2><span class="step">STEP 2</span></div>
+      <div class="section-hint">칩을 눌러 자주 쓰는 항목을 추가하거나, 직접 행을 추가하세요.</div>
+      <div class="card">
+        <div class="chip-row" id="pChipRow">
+          <button type="button" class="chip" data-label="시딩 참여 크리에이터">+ 시딩 참여 크리에이터</button>
+          <button type="button" class="chip" data-label="시딩 예산">+ 시딩 예산</button>
+          <button type="button" class="chip" data-label="최소 팔로워">+ 최소 팔로워</button>
+          <button type="button" class="chip" data-label="콘텐츠 유형 수">+ 콘텐츠 유형 수</button>
+          <button type="button" class="chip" data-label="캠페인 기간">+ 캠페인 기간</button>
+          <button type="button" class="chip" data-label="목표 국가 수">+ 목표 국가 수</button>
+        </div>
+        <div id="pConditionRows"></div>
+        <button type="button" class="add-row-btn" id="pAddConditionBtn">+ 직접 행 추가하기</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><h2>타임라인 (마케팅 캘린더)</h2><span class="step">STEP 3</span></div>
+      <div class="section-hint">단계명 / 시작월 / 기간(개월) / 색상 순으로 입력하세요.</div>
+      <div class="card">
+        <div id="pTimelineRows"></div>
+        <button type="button" class="add-row-btn" id="pAddTimelineBtn">+ 타임라인 단계 추가하기</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><h2>참고 자료 업로드</h2><span class="step">STEP 4</span></div>
+      <div class="section-hint">시장 검증 PDF, 콘텐츠 예시 스크린샷, 브랜드 이미지를 업로드하세요. 6MB 이하 파일은 내보내기 파일에 그대로 포함됩니다.</div>
+      <div class="dropzone" id="pDropzone">
+        <div><strong>클릭하거나 파일을 끌어다 놓으세요</strong></div>
+        <div style="margin-top:4px;">PDF, 스크린샷, 브랜드 이미지 등</div>
+      </div>
+      <input type="file" id="pFileInput" multiple accept="image/*,application/pdf" />
+      <div class="upload-grid" id="pUploadGrid"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><h2>추가 메모</h2><span class="step">STEP 5</span></div>
+      <div class="card">
+        <textarea id="pExtraNotes" style="min-height:100px;" placeholder="그 외 참고할 내용을 자유롭게 적어주세요."></textarea>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" id="pExportBtn">Export Brief (.json)</button>
+      <button class="btn" id="pImportBtn">Import Brief (.json)</button>
+      <button class="btn" id="pCopyBtn">Copy Summary as Text</button>
+      <input type="file" id="pImportInput" accept="application/json" />
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- TAB 2 — 성과 리포트 (SELF-CONTAINED REPORT / CREATOR TRACKER)  -->
+  <!-- ============================================================ -->
+  <div class="tab-panel" id="panel-report">
+    <div class="lede no-print">완료된 캠페인의 크리에이터별 성과(조회수·좋아요·댓글·공유)와 증빙 스크린샷을 입력하면, 클라이언트에게 바로 전달할 수 있는 리포트를 즉시 만들 수 있습니다. Claude 없이도 이 페이지에서 바로 완성됩니다.</div>
+
+    <div class="howto no-print">
+      <div class="h-title">사용 방법</div>
+      <ol>
+        <li><strong>캠페인 정보</strong>를 입력하고, <strong>크리에이터별 콘텐츠</strong> 행을 채워주세요 (CSV 불러오기도 가능합니다).</li>
+        <li>수치를 입력하면 <strong>총 조회수 · 참여율 · Top Performer · 누락 데이터</strong>가 자동 계산됩니다.</li>
+        <li><strong>증빙 스크린샷, GIF, 영상</strong>을 업로드하면 최종 리포트에 함께 표시됩니다.</li>
+        <li><strong>Generate HTML Report</strong>로 영상/GIF가 그대로 재생되는 단일 HTML 파일을 내려받거나, <strong>Print / Save PDF</strong>로 인쇄용 PDF를 만드세요.</li>
+      </ol>
+    </div>
+
+    <div class="section no-print">
+      <div class="section-head"><h2>캠페인 정보</h2><span class="step">STEP 1</span></div>
+      <div class="card field-grid">
+        <div class="field"><label>클라이언트</label><input type="text" id="rpClient" placeholder="예: KOWORK" /></div>
+        <div class="field"><label>캠페인명</label><input type="text" id="rpCampaign" placeholder="예: July Creator Visit Campaign" /></div>
+        <div class="field"><label>기간</label><input type="text" id="rpDates" placeholder="예: 2026-07-01 ~ 2026-07-14" /></div>
+        <div class="field"><label>패키지</label><input type="text" id="rpPackage" placeholder="예: 30 creators / 30 contents" /></div>
+      </div>
+    </div>
+
+    <div class="section no-print">
+      <div class="kpi-row">
+        <div class="kpi-mini"><span>Total Views</span><strong id="totalViews">0</strong></div>
+        <div class="kpi-mini"><span>Total Engagements</span><strong id="totalEngagements">0</strong></div>
+        <div class="kpi-mini"><span>Avg. Engagement Rate</span><strong id="avgEngagementRate">0%</strong></div>
+        <div class="kpi-mini"><span>Completed Posts</span><strong id="completedPosts">0</strong></div>
+      </div>
+    </div>
+
+    <div class="section no-print">
+      <div class="section-head">
+        <h2>크리에이터 콘텐츠 트래커</h2>
+        <div class="btn-row">
+          <label class="btn sm">CSV 불러오기<input type="file" id="rpCsvInput" accept=".csv,text/csv" /></label>
+          <button class="btn sm" id="rpDownloadCsv">CSV 내보내기</button>
+          <button class="btn sm" id="rpAddRow">+ 크리에이터 추가</button>
+        </div>
+      </div>
+      <div class="card rp-table-wrap">
+        <table class="rp-table">
+          <thead>
+            <tr>
+              <th>Creator</th><th>Platform</th><th>URL</th><th>Views</th><th>Likes</th><th>Comments</th>
+              <th>Shares</th><th>Saves</th><th>Reach</th><th>Countries</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="creatorRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section no-print">
+      <div class="section-head"><h2>요약 & 인사이트</h2></div>
+      <div class="two-col">
+        <div class="card">
+          <label>리포트 요약 (직접 수정 가능)</label>
+          <textarea id="summaryText" style="min-height:150px;"></textarea>
+        </div>
+        <div class="card">
+          <div style="margin-bottom:16px;"><label>Top Performers</label><ol class="mini-list" id="topPerformers"></ol></div>
+          <div><label>누락 데이터</label><ul class="mini-list" id="missingData"></ul></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section no-print">
+      <div class="section-head"><h2>증빙 스크린샷</h2></div>
+      <div class="section-hint">인플루언서가 보내온 애널리틱스 스크린샷, 영상, GIF를 업로드하세요. HTML 리포트와 인쇄본 모두에 함께 표시됩니다.</div>
+      <div class="dropzone" id="rpDropzone">
+        <div><strong>클릭하거나 파일을 끌어다 놓으세요</strong></div>
+        <div style="margin-top:4px;">이미지, GIF, 영상 (mp4, webm) 등</div>
+      </div>
+      <input type="file" id="rpFileInput" multiple accept="image/*,video/*,.gif" />
+      <div class="upload-grid" id="rpUploadGrid"></div>
+    </div>
+
+    <div class="actions no-print">
+      <button class="btn primary" id="rpGenerateHtmlBtn">Generate HTML Report</button>
+      <button class="btn" id="rpPrintBtn">Print / Save PDF</button>
+    </div>
+
+    <!-- printable client report -->
+    <section id="clientReport">
+      <div class="rp-report-cover">
+        <p class="eyebrow" style="margin-bottom:6px;"><span class="dot"></span> Client Report</p>
+        <h2 id="reportTitle">Campaign Report</h2>
+        <p id="reportMeta"></p>
+      </div>
+
+      <div class="rp-report-grid">
+        <article><span>Total Views</span><strong id="reportViews">0</strong></article>
+        <article><span>Total Engagements</span><strong id="reportEngagements">0</strong></article>
+        <article><span>Engagement Rate</span><strong id="reportRate">0%</strong></article>
+        <article><span>Posts Delivered</span><strong id="reportDelivered">0</strong></article>
+      </div>
+
+      <h3>Executive Summary</h3>
+      <p id="reportSummary"></p>
+
+      <h3>Best Performing Content</h3>
+      <div class="rp-table-wrap">
+        <table class="rp-table">
+          <thead><tr><th>Creator</th><th>Platform</th><th>Views</th><th>Engagements</th><th>Countries</th><th>URL</th></tr></thead>
+          <tbody id="reportRows"></tbody>
+        </table>
+      </div>
+
+      <div id="reportProofBlock" style="display:none;">
+        <h3>증빙 자료</h3>
+        <div class="proof-print-grid" id="reportProofGrid"></div>
+      </div>
+    </section>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================ */
+/* SHARED HELPERS                                                */
+/* ============================================================ */
+const toastEl = document.getElementById('toast');
+function showToast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  setTimeout(() => toastEl.classList.remove('show'), 2200);
+}
+function escAttr(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+function escHtml(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/* tab switching */
+document.querySelectorAll('.tab-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach((p) => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+const MAX_EMBED_BYTES = 6 * 1024 * 1024;
+const MAX_EMBED_BYTES_VIDEO = 30 * 1024 * 1024;
+
+/* generic upload-zone wiring: returns an API to read current items */
+function wireUploadZone({ dropzoneId, fileInputId, gridId, kindOptions, defaultKind }) {
+  const dropzone = document.getElementById(dropzoneId);
+  const fileInput = document.getElementById(fileInputId);
+  const grid = document.getElementById(gridId);
+  let items = [];
+  let counter = 0;
+
+  function renderCard(item) {
+    const card = document.createElement('div');
+    card.className = 'upload-card';
+    card.dataset.id = item.id;
+
+    let thumbHtml = '<div class="file-ico">📄</div>';
+    if (item.dataUrl && item.mime.startsWith('image/')) {
+      thumbHtml = '<img src="' + item.dataUrl + '" alt="" />';
+    } else if (item.dataUrl && item.mime.startsWith('video/')) {
+      thumbHtml = '<video src="' + item.dataUrl + '" muted loop autoplay playsinline></video>';
+    } else if (item.mime.startsWith('video/')) {
+      thumbHtml = '<div class="file-ico">🎬</div>';
+    }
+
+    const warnHtml = item.dataUrl ? '' : '<div class="warn">파일 용량이 커서 미리보기만 저장됩니다. media 폴더에 같은 파일을 함께 전달해주세요.</div>';
+    const kindSelectHtml = kindOptions
+      ? '<select class="u-kind">' + kindOptions.map((k) => '<option value="' + k.value + '"' + (item.kind === k.value ? ' selected' : '') + '>' + k.label + '</option>').join('') + '</select>'
+      : '';
+
+    card.innerHTML =
+      '<div class="upload-thumb">' + thumbHtml + '</div>' +
+      '<div class="upload-meta">' +
+      '<div class="fname">' + escAttr(item.name) + '</div>' +
+      warnHtml + kindSelectHtml +
+      '<input type="text" class="u-caption" placeholder="캡션" value="' + escAttr(item.caption) + '" />' +
+      '<button type="button" class="upload-remove">삭제</button>' +
+      '</div>';
+
+    if (kindOptions) {
+      card.querySelector('.u-kind').addEventListener('change', (e) => { item.kind = e.target.value; });
+    }
+    card.querySelector('.u-caption').addEventListener('input', (e) => { item.caption = e.target.value; renderReport(); });
+    card.querySelector('.upload-remove').addEventListener('click', () => {
+      items = items.filter((u) => u.id !== item.id);
+      card.remove();
+      renderReport();
+    });
+
+    grid.appendChild(card);
+  }
+
+  function handleFiles(fileList) {
+    Array.from(fileList).forEach((file) => {
+      counter++;
+      const item = {
+        id: 'u' + Date.now() + '-' + counter,
+        name: file.name,
+        mime: file.type || 'application/octet-stream',
+        size: file.size,
+        dataUrl: null,
+        caption: '',
+        kind: defaultKind
+      };
+      items.push(item);
+      const limit = item.mime.startsWith('video/') ? MAX_EMBED_BYTES_VIDEO : MAX_EMBED_BYTES;
+      if (file.size <= limit) {
+        const reader = new FileReader();
+        reader.onload = () => { item.dataUrl = reader.result; renderCard(item); renderReport(); };
+        reader.onerror = () => { renderCard(item); };
+        reader.readAsDataURL(file);
+      } else {
+        renderCard(item);
+      }
+    });
+  }
+
+  dropzone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', (e) => { handleFiles(e.target.files); fileInput.value = ''; });
+  ['dragenter', 'dragover'].forEach((evt) => dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.add('drag'); }));
+  ['dragleave', 'drop'].forEach((evt) => dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.remove('drag'); }));
+  dropzone.addEventListener('drop', (e) => { if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); });
+
+  return {
+    getItems: () => items,
+    setItems: (newItems) => {
+      items = []; counter = 0; grid.innerHTML = '';
+      (newItems || []).forEach((u) => { counter++; const item = { ...u, id: 'u' + Date.now() + '-' + counter }; items.push(item); renderCard(item); });
+    }
+  };
+}
+
+/* renderReport defined later (tab2); safe no-op until then */
+function renderReport() { if (window.__rpRenderReport) window.__rpRenderReport(); }
+
+/* ============================================================ */
+/* TAB 1 — PROPOSAL BRIEF COLLECTOR                              */
+/* ============================================================ */
+(function () {
+  let conditionCounter = 0;
+  let timelineCounter = 0;
+  const conditionRows = document.getElementById('pConditionRows');
+  const timelineRows = document.getElementById('pTimelineRows');
+
+  function addConditionRow(label, value, note) {
+    conditionCounter++;
+    const row = document.createElement('div');
+    row.className = 'row-3';
+    row.innerHTML =
+      '<input type="text" class="c-label" placeholder="항목명 (예: 시딩 예산)" value="' + escAttr(label || '') + '" />' +
+      '<input type="text" class="c-value" placeholder="값 (예: 300만원)" value="' + escAttr(value || '') + '" />' +
+      '<input type="text" class="c-note" placeholder="설명 / 조건 (선택)" value="' + escAttr(note || '') + '" />' +
+      '<button type="button" class="row-remove" title="삭제">×</button>';
+    row.querySelector('.row-remove').addEventListener('click', () => row.remove());
+    conditionRows.appendChild(row);
+  }
+  document.getElementById('pChipRow').addEventListener('click', (e) => {
+    const chip = e.target.closest('.chip');
+    if (chip) addConditionRow(chip.dataset.label, '', '');
+  });
+  document.getElementById('pAddConditionBtn').addEventListener('click', () => addConditionRow('', '', ''));
+  addConditionRow('시딩 참여 크리에이터', '', '');
+  addConditionRow('시딩 예산', '', '');
+
+  function addTimelineRow(stage, startMonth, span, color) {
+    timelineCounter++;
+    const row = document.createElement('div');
+    row.className = 'row-4';
+    row.innerHTML =
+      '<input type="text" class="t-stage" placeholder="단계명 (예: 시딩 캠페인)" value="' + escAttr(stage || '') + '" />' +
+      '<input type="text" class="t-start" placeholder="시작월 (예: 7월)" value="' + escAttr(startMonth || '') + '" />' +
+      '<input type="text" class="t-span" placeholder="기간 (예: 2개월)" value="' + escAttr(span || '') + '" />' +
+      '<select class="t-color">' +
+        ['gold', 'pink', 'gray', 'violet'].map((c) => '<option value="' + c + '"' + (color === c ? ' selected' : '') + '>' + c + '</option>').join('') +
+      '</select>' +
+      '<button type="button" class="row-remove" title="삭제">×</button>';
+    row.querySelector('.row-remove').addEventListener('click', () => row.remove());
+    timelineRows.appendChild(row);
+  }
+  document.getElementById('pAddTimelineBtn').addEventListener('click', () => addTimelineRow('', '', '', 'gold'));
+  addTimelineRow('시딩 캠페인', '7월', '2개월', 'gold');
+
+  const pColor = document.getElementById('pColor');
+  const pColorHex = document.getElementById('pColorHex');
+  pColor.addEventListener('input', () => { pColorHex.value = pColor.value; });
+  pColorHex.addEventListener('input', () => { if (/^#[0-9a-fA-F]{6}$/.test(pColorHex.value)) pColor.value = pColorHex.value; });
+
+  const pUploads = wireUploadZone({
+    dropzoneId: 'pDropzone', fileInputId: 'pFileInput', gridId: 'pUploadGrid',
+    kindOptions: [
+      { value: 'pdf-ref', label: 'PDF 원본' }, { value: 'market', label: '시장 검증 스크린샷' },
+      { value: 'content', label: '콘텐츠 예시' }, { value: 'brand', label: '브랜드 이미지' }, { value: 'other', label: '기타' }
+    ],
+    defaultKind: 'market'
+  });
+
+  function collectBrief() {
+    const conditions = Array.from(conditionRows.querySelectorAll('.row-3')).map((row) => ({
+      label: row.querySelector('.c-label').value, value: row.querySelector('.c-value').value, note: row.querySelector('.c-note').value
+    })).filter((c) => c.label || c.value || c.note);
+
+    const timeline = Array.from(timelineRows.querySelectorAll('.row-4')).map((row) => ({
+      stage: row.querySelector('.t-stage').value, startMonth: row.querySelector('.t-start').value,
+      span: row.querySelector('.t-span').value, color: row.querySelector('.t-color').value
+    })).filter((t) => t.stage || t.startMonth || t.span);
+
+    return {
+      type: 'proposal-brief',
+      exportedAt: new Date().toISOString(),
+      brand: {
+        clientName: document.getElementById('pClient').value,
+        proposalTitle: document.getElementById('pTitle').value,
+        category: document.getElementById('pCategory').value,
+        theme: document.getElementById('pTheme').value,
+        highlightColor: pColorHex.value,
+        target: document.getElementById('pTarget').value
+      },
+      marketSummary: document.getElementById('pMarketSummary').value,
+      conditions: conditions,
+      timeline: timeline,
+      uploads: pUploads.getItems().map((u) => ({ name: u.name, mime: u.mime, size: u.size, caption: u.caption, kind: u.kind, dataUrl: u.dataUrl || null })),
+      extraNotes: document.getElementById('pExtraNotes').value
+    };
+  }
+
+  document.getElementById('pExportBtn').addEventListener('click', () => {
+    const brief = collectBrief();
+    const blob = new Blob([JSON.stringify(brief, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    const safeName = (brief.brand.clientName || 'vively-proposal').trim().replace(/[^a-zA-Z0-9가-힣_-]+/g, '_') || 'proposal';
+    a.href = URL.createObjectURL(blob);
+    a.download = safeName + '-proposal-brief.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    showToast('제안서 브리프를 내려받았습니다. 채팅에 업로드해주세요.');
+  });
+
+  document.getElementById('pImportBtn').addEventListener('click', () => document.getElementById('pImportInput').click());
+  document.getElementById('pImportInput').addEventListener('change', (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const brief = JSON.parse(reader.result);
+        document.getElementById('pClient').value = brief.brand?.clientName || '';
+        document.getElementById('pTitle').value = brief.brand?.proposalTitle || '';
+        document.getElementById('pCategory').value = brief.brand?.category || '';
+        document.getElementById('pTheme').value = brief.brand?.theme || 'cream';
+        pColorHex.value = brief.brand?.highlightColor || '#ff5757'; pColor.value = pColorHex.value;
+        document.getElementById('pTarget').value = brief.brand?.target || '';
+        document.getElementById('pMarketSummary').value = brief.marketSummary || '';
+        document.getElementById('pExtraNotes').value = brief.extraNotes || '';
+        conditionRows.innerHTML = ''; (brief.conditions || []).forEach((c) => addConditionRow(c.label, c.value, c.note));
+        timelineRows.innerHTML = ''; (brief.timeline || []).forEach((t) => addTimelineRow(t.stage, t.startMonth, t.span, t.color));
+        pUploads.setItems(brief.uploads || []);
+        showToast('불러오기 완료.');
+      } catch (err) { showToast('파일을 읽을 수 없습니다.'); }
+    };
+    reader.readAsText(file); e.target.value = '';
+  });
+
+  document.getElementById('pCopyBtn').addEventListener('click', async () => {
+    const brief = collectBrief();
+    const lines = [];
+    lines.push('# ' + (brief.brand.proposalTitle || brief.brand.clientName || 'Vively Proposal'));
+    lines.push('브랜드: ' + (brief.brand.clientName || '-') + ' / 카테고리: ' + (brief.brand.category || '-'));
+    lines.push('테마: ' + brief.brand.theme + ' / 하이라이트: ' + brief.brand.highlightColor);
+    lines.push('타깃: ' + (brief.brand.target || '-'));
+    lines.push('');
+    lines.push('## 시장 검증 요약');
+    lines.push(brief.marketSummary || '-');
+    lines.push('');
+    lines.push('## 제안 조건');
+    brief.conditions.forEach((c) => lines.push('- ' + c.label + ': ' + c.value + (c.note ? ' (' + c.note + ')' : '')));
+    lines.push('');
+    lines.push('## 타임라인');
+    brief.timeline.forEach((t) => lines.push('- ' + t.stage + ' (' + t.startMonth + ', ' + t.span + ', ' + t.color + ')'));
+    lines.push('');
+    lines.push('## 업로드 파일');
+    brief.uploads.forEach((u) => lines.push('- [' + u.kind + '] ' + u.name + (u.caption ? ' — ' + u.caption : '') + (u.dataUrl ? '' : ' (파일 첨부 필요)')));
+    lines.push('');
+    lines.push('## 추가 메모');
+    lines.push(brief.extraNotes || '-');
+    try { await navigator.clipboard.writeText(lines.join('\n')); showToast('요약이 클립보드에 복사되었습니다.'); }
+    catch (err) { showToast('복사에 실패했습니다. 콘솔에서 확인하세요.'); console.log(lines.join('\n')); }
+  });
+})();
+
+/* ============================================================ */
+/* TAB 2 — SELF-CONTAINED PERFORMANCE REPORT / CREATOR TRACKER   */
+/* ============================================================ */
+(function () {
+  const fields = ['creator', 'platform', 'url', 'views', 'likes', 'comments', 'shares', 'saves', 'reach', 'countries', 'status'];
+  let rows = [
+    { creator: '', platform: 'Instagram', url: '', views: 0, likes: 0, comments: 0, shares: 0, saves: 0, reach: 0, countries: '', status: 'Waiting' }
+  ];
+
+  const money = new Intl.NumberFormat('en-US');
+  function numberValue(value) { const parsed = Number(String(value || '').replace(/,/g, '')); return Number.isFinite(parsed) ? parsed : 0; }
+  function engagement(row) { return numberValue(row.likes) + numberValue(row.comments) + numberValue(row.shares) + numberValue(row.saves); }
+  function formatNumber(value) { return money.format(Math.round(numberValue(value))); }
+
+  function renderRows() {
+    const tbody = document.querySelector('#creatorRows');
+    tbody.innerHTML = rows.map((row, index) => `
+      <tr>
+        ${cell(index, 'creator')}
+        ${selectCell(index, 'platform', ['Instagram', 'TikTok', 'YouTube', 'Naver', 'Other'])}
+        ${cell(index, 'url', 'url')}
+        ${cell(index, 'views', 'number')}
+        ${cell(index, 'likes', 'number')}
+        ${cell(index, 'comments', 'number')}
+        ${cell(index, 'shares', 'number')}
+        ${cell(index, 'saves', 'number')}
+        ${cell(index, 'reach', 'number')}
+        ${cell(index, 'countries')}
+        ${selectCell(index, 'status', ['Waiting', 'Scheduled', 'Posted', 'Needs Screenshot', 'Approved'])}
+      </tr>`).join('');
+  }
+  function cell(index, field, type = 'text') {
+    const row = rows[index];
+    const inputType = type === 'number' ? 'number' : 'text';
+    const className = field === 'url' ? 'url' : '';
+    return `<td><input class="${className}" data-index="${index}" data-field="${field}" type="${inputType}" value="${escAttr(row[field])}" /></td>`;
+  }
+  function selectCell(index, field, options) {
+    const selected = rows[index][field];
+    const optionHtml = options.map((o) => `<option ${o === selected ? 'selected' : ''}>${escHtml(o)}</option>`).join('');
+    return `<td><select data-index="${index}" data-field="${field}">${optionHtml}</select></td>`;
+  }
+
+  function calculateStats() {
+    const posted = rows.filter((row) => row.status !== 'Waiting' && row.url);
+    const totalViews = rows.reduce((sum, row) => sum + numberValue(row.views), 0);
+    const totalReach = rows.reduce((sum, row) => sum + numberValue(row.reach), 0);
+    const totalEngagements = rows.reduce((sum, row) => sum + engagement(row), 0);
+    const engagementBase = totalReach || totalViews;
+    const rate = engagementBase ? (totalEngagements / engagementBase) * 100 : 0;
+    return { posted, totalViews, totalReach, totalEngagements, rate };
+  }
+
+  function buildSummary(stats) {
+    const client = document.querySelector('#rpClient').value || '클라이언트';
+    const campaign = document.querySelector('#rpCampaign').value || '캠페인';
+    const top = [...rows].sort((a, b) => numberValue(b.views) - numberValue(a.views))[0];
+    const topText = top && top.creator ? `${top.creator}이(가) ${formatNumber(top.views)}회 조회수로 가장 높은 성과를 기록했습니다.` : '';
+    return `${campaign} (${client}) 캠페인은 현재까지 ${stats.posted.length}건의 콘텐츠가 업로드되어 총 ${formatNumber(stats.totalViews)}회 조회수, ${formatNumber(stats.totalEngagements)}건의 참여를 기록했습니다. 평균 참여율은 ${stats.rate.toFixed(1)}%입니다. ${topText}`;
+  }
+
+  function updateDashboard() {
+    const stats = calculateStats();
+    document.querySelector('#totalViews').textContent = formatNumber(stats.totalViews);
+    document.querySelector('#totalEngagements').textContent = formatNumber(stats.totalEngagements);
+    document.querySelector('#avgEngagementRate').textContent = `${stats.rate.toFixed(1)}%`;
+    document.querySelector('#completedPosts').textContent = `${stats.posted.length} / ${rows.length}`;
+
+    const summaryBox = document.querySelector('#summaryText');
+    if (!summaryBox.dataset.edited) summaryBox.value = buildSummary(stats);
+
+    renderTopPerformers();
+    renderMissingData();
+    renderReport(stats);
+  }
+
+  function renderTopPerformers() {
+    const list = document.querySelector('#topPerformers');
+    const topRows = [...rows].sort((a, b) => numberValue(b.views) - numberValue(a.views)).slice(0, 5);
+    list.innerHTML = topRows.filter((row) => numberValue(row.views) > 0)
+      .map((row) => `<li>${escHtml(row.creator)}: ${formatNumber(row.views)} views</li>`).join('') || '<li>데이터를 입력해주세요.</li>';
+  }
+  function renderMissingData() {
+    const list = document.querySelector('#missingData');
+    const missing = rows.map((row) => {
+      const items = [];
+      if (row.status !== 'Waiting' && !row.url) items.push('URL');
+      if (row.url && !numberValue(row.views)) items.push('조회수');
+      if (row.url && !row.countries) items.push('국가');
+      return items.length ? `${row.creator || '이름 없음'}: ${items.join(', ')} 누락` : '';
+    }).filter(Boolean);
+    list.innerHTML = missing.length ? missing.map((item) => `<li>${escHtml(item)}</li>`).join('') : '<li>누락된 항목이 없습니다.</li>';
+  }
+
+  window.__rpRenderReport = function () { renderReport(calculateStats()); };
+
+  function renderReport(stats) {
+    const client = document.querySelector('#rpClient').value;
+    const campaign = document.querySelector('#rpCampaign').value;
+    const dates = document.querySelector('#rpDates').value;
+    const packageName = document.querySelector('#rpPackage').value;
+
+    document.querySelector('#reportTitle').textContent = `${client || 'Client'} - ${campaign || 'Campaign Report'}`;
+    document.querySelector('#reportMeta').textContent = `${dates || ''} ${dates && packageName ? '|' : ''} ${packageName || ''}`;
+    document.querySelector('#reportViews').textContent = formatNumber(stats.totalViews);
+    document.querySelector('#reportEngagements').textContent = formatNumber(stats.totalEngagements);
+    document.querySelector('#reportRate').textContent = `${stats.rate.toFixed(1)}%`;
+    document.querySelector('#reportDelivered').textContent = `${stats.posted.length}`;
+    document.querySelector('#reportSummary').textContent = document.querySelector('#summaryText').value;
+
+    const reportRows = [...rows].filter((row) => row.url).sort((a, b) => numberValue(b.views) - numberValue(a.views)).slice(0, 10);
+    document.querySelector('#reportRows').innerHTML = reportRows.map((row) => `
+      <tr>
+        <td>${escHtml(row.creator)}</td><td>${escHtml(row.platform)}</td><td>${formatNumber(row.views)}</td>
+        <td>${formatNumber(engagement(row))}</td><td>${escHtml(row.countries)}</td>
+        <td><a href="${escAttr(row.url)}">${escHtml(row.url)}</a></td>
+      </tr>`).join('');
+
+    const proofItems = rpUploads ? rpUploads.getItems() : [];
+    const block = document.getElementById('reportProofBlock');
+    const grid = document.getElementById('reportProofGrid');
+    if (proofItems.length) {
+      block.style.display = '';
+      grid.innerHTML = proofItems.map((u) => {
+        const media = u.dataUrl
+          ? (u.mime.startsWith('video/') ? `<video src="${u.dataUrl}" muted loop autoplay playsinline></video>` : `<img src="${u.dataUrl}" alt="" />`)
+          : `<div style="aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;">파일 첨부 필요</div>`;
+        return `<div class="proof-print-card">${media}<div class="cap">${escHtml(u.caption || u.name)}</div></div>`;
+      }).join('');
+    } else {
+      block.style.display = 'none';
+    }
+  }
+
+  /* ---------- standalone HTML report export ---------- */
+  function buildStandaloneReportHtml() {
+    const stats = calculateStats();
+    const client = document.querySelector('#rpClient').value || 'Client';
+    const campaign = document.querySelector('#rpCampaign').value || 'Campaign Report';
+    const dates = document.querySelector('#rpDates').value || '';
+    const packageName = document.querySelector('#rpPackage').value || '';
+    const summary = document.querySelector('#summaryText').value || '';
+
+    const reportRows = [...rows].filter((row) => row.url).sort((a, b) => numberValue(b.views) - numberValue(a.views)).slice(0, 10);
+    const tableRowsHtml = reportRows.map((row) => `
+      <tr>
+        <td>${escHtml(row.creator)}</td><td>${escHtml(row.platform)}</td><td>${formatNumber(row.views)}</td>
+        <td>${formatNumber(engagement(row))}</td><td>${escHtml(row.countries)}</td>
+        <td><a href="${escAttr(row.url)}" target="_blank" rel="noopener">${escHtml(row.url)}</a></td>
+      </tr>`).join('') || '<tr><td colspan="6" style="color:#888;">등록된 콘텐츠가 없습니다.</td></tr>';
+
+    const proofItems = rpUploads ? rpUploads.getItems() : [];
+    const mediaHtml = proofItems.length ? proofItems.map((u) => {
+      let media;
+      if (u.dataUrl && u.mime.startsWith('video/')) {
+        media = `<video src="${u.dataUrl}" muted loop autoplay playsinline controls></video>`;
+      } else if (u.dataUrl) {
+        media = `<img src="${u.dataUrl}" alt="${escAttr(u.caption || u.name)}" />`;
+      } else {
+        media = `<div class="ph">파일 첨부 필요<br /><span>${escHtml(u.name)}</span></div>`;
+      }
+      return `<div class="media-card">${media}<div class="cap">${escHtml(u.caption || u.name)}</div></div>`;
+    }).join('') : '';
+
+    return `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>${escHtml(client)} — ${escHtml(campaign)}</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#fffcf1; --text:#1b1b1b; --muted:#4f4e4e; --line:rgba(35,44,39,0.12); --line-strong:rgba(35,44,39,0.25); --accent:#ff5757; --radius:16px; --radius-sm:10px; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:"Noto Sans KR","Pretendard",-apple-system,BlinkMacSystemFont,Arial,sans-serif; line-height:1.6; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 48px 28px 90px; }
+  .eyebrow { display:inline-flex; align-items:center; gap:8px; font-size:11.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); border:1px solid var(--line-strong); border-radius:999px; padding:6px 13px; background:#fff; margin-bottom:16px; }
+  .dot { width:7px; height:7px; border-radius:50%; background:var(--accent); display:inline-block; }
+  h2.title { font-size: 34px; font-weight: 800; letter-spacing: -0.03em; margin: 4px 0 8px; }
+  .meta { color: var(--muted); font-size: 13.5px; margin: 0 0 28px; }
+  .grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:30px; }
+  .kpi { border:1px solid var(--line); border-radius:var(--radius); background:#fff; padding:16px 14px; }
+  .kpi span { display:block; font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); margin-bottom:8px; }
+  .kpi strong { display:block; font-size:24px; font-weight:800; color:var(--accent); letter-spacing:-0.02em; }
+  h3 { font-size:15px; margin:30px 0 12px; letter-spacing:-0.01em; }
+  p.summary { font-size:14px; color:#333; line-height:1.75; background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px; }
+  table { width:100%; border-collapse:collapse; font-size:12.5px; background:#fff; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; }
+  th, td { text-align:left; padding:10px 10px; border-bottom:1px solid var(--line); }
+  th { font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); }
+  tr:last-child td { border-bottom:none; }
+  a { color: var(--accent); }
+  .media-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  .media-card { border:1px solid var(--line); border-radius:var(--radius-sm); overflow:hidden; background:#fff; }
+  .media-card img, .media-card video { width:100%; aspect-ratio:4/3; object-fit:cover; display:block; background:#000; }
+  .media-card .ph { aspect-ratio:4/3; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--muted); font-size:11px; text-align:center; padding:10px; }
+  .media-card .cap { font-size:11px; color:var(--muted); padding:8px 10px; }
+  .footer { font-size:11.5px; color:var(--muted); margin-top:34px; padding-top:18px; border-top:1px solid var(--line); }
+  @media (max-width:700px) { .grid-4, .media-grid { grid-template-columns:repeat(2,1fr); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow"><span class="dot"></span> Vively · Client Report</div>
+  <h2 class="title">${escHtml(client)} — ${escHtml(campaign)}</h2>
+  <div class="meta">${escHtml(dates)}${dates && packageName ? ' · ' : ''}${escHtml(packageName)}</div>
+
+  <div class="grid-4">
+    <div class="kpi"><span>Total Views</span><strong>${formatNumber(stats.totalViews)}</strong></div>
+    <div class="kpi"><span>Total Engagements</span><strong>${formatNumber(stats.totalEngagements)}</strong></div>
+    <div class="kpi"><span>Engagement Rate</span><strong>${stats.rate.toFixed(1)}%</strong></div>
+    <div class="kpi"><span>Posts Delivered</span><strong>${stats.posted.length}</strong></div>
+  </div>
+
+  <h3>Executive Summary</h3>
+  <p class="summary">${escHtml(summary)}</p>
+
+  <h3>Best Performing Content</h3>
+  <table>
+    <thead><tr><th>Creator</th><th>Platform</th><th>Views</th><th>Engagements</th><th>Countries</th><th>URL</th></tr></thead>
+    <tbody>${tableRowsHtml}</tbody>
+  </table>
+
+  ${mediaHtml ? `<h3>증빙 자료</h3><div class="media-grid">${mediaHtml}</div>` : ''}
+
+  <div class="footer">Vively 리포트 도구로 생성됨 · ${new Date().toLocaleDateString('ko-KR')}</div>
+</div>
+</body>
+</html>`;
+  }
+
+  document.querySelector('#rpGenerateHtmlBtn').addEventListener('click', () => {
+    const html = buildStandaloneReportHtml();
+    const blob = new Blob([html], { type: 'text/html' });
+    const client = (document.querySelector('#rpClient').value || 'vively-report').trim().replace(/[^a-zA-Z0-9가-힣_-]+/g, '_') || 'report';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = client + '-report.html';
+    document.body.appendChild(a); a.click(); a.remove();
+    showToast('HTML 리포트를 내려받았습니다.');
+  });
+
+  document.addEventListener('input', (event) => {
+    const target = event.target;
+    if (target.matches('[data-field]') && target.closest('#creatorRows')) {
+      rows[target.dataset.index][target.dataset.field] = target.value;
+      updateDashboard();
+    }
+    if (target.id === 'summaryText') { target.dataset.edited = 'true'; updateDashboard(); }
+    if (['rpClient', 'rpCampaign', 'rpDates', 'rpPackage'].includes(target.id)) {
+      document.querySelector('#summaryText').dataset.edited = '';
+      updateDashboard();
+    }
+  });
+  document.addEventListener('change', (event) => {
+    const target = event.target;
+    if (target.matches('[data-field]') && target.closest('#creatorRows')) {
+      rows[target.dataset.index][target.dataset.field] = target.value;
+      updateDashboard();
+    }
+  });
+
+  document.querySelector('#rpAddRow').addEventListener('click', () => {
+    rows.push({ creator: `Creator ${String(rows.length + 1).padStart(2, '0')}`, platform: 'Instagram', url: '', views: 0, likes: 0, comments: 0, shares: 0, saves: 0, reach: 0, countries: '', status: 'Waiting' });
+    renderRows(); updateDashboard();
+  });
+
+  function toCsv() {
+    const csvRows = [fields.join(',')];
+    rows.forEach((row) => csvRows.push(fields.map((f) => `"${String(row[f] ?? '').replaceAll('"', '""')}"`).join(',')));
+    return csvRows.join('\n');
+  }
+  function splitCsvLine(line) {
+    const values = []; let value = ''; let quoted = false;
+    for (let i = 0; i < line.length; i += 1) {
+      const char = line[i]; const next = line[i + 1];
+      if (char === '"' && quoted && next === '"') { value += '"'; i += 1; }
+      else if (char === '"') { quoted = !quoted; }
+      else if (char === ',' && !quoted) { values.push(value); value = ''; }
+      else { value += char; }
+    }
+    values.push(value); return values;
+  }
+  function parseCsv(text) {
+    const lines = text.trim().split(/\r?\n/);
+    const headers = splitCsvLine(lines.shift()).map((h) => h.trim().toLowerCase());
+    return lines.map((line) => {
+      const values = splitCsvLine(line);
+      return fields.reduce((row, field) => { const idx = headers.indexOf(field); row[field] = idx >= 0 ? values[idx] || '' : ''; return row; }, {});
+    });
+  }
+
+  document.querySelector('#rpDownloadCsv').addEventListener('click', () => {
+    const blob = new Blob([toCsv()], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url; link.download = 'vively-campaign-report.csv'; link.click();
+    URL.revokeObjectURL(url);
+  });
+  document.querySelector('#rpCsvInput').addEventListener('change', async (event) => {
+    const file = event.target.files[0]; if (!file) return;
+    rows = parseCsv(await file.text());
+    renderRows(); updateDashboard();
+  });
+  document.querySelector('#rpPrintBtn').addEventListener('click', () => window.print());
+
+  const rpUploads = wireUploadZone({
+    dropzoneId: 'rpDropzone', fileInputId: 'rpFileInput', gridId: 'rpUploadGrid',
+    kindOptions: null, defaultKind: 'proof'
+  });
+
+  renderRows();
+  updateDashboard();
+})();
+</script>
+</body>
+</html>
